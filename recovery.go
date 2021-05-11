@@ -5,7 +5,6 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"runtime"
 	"runtime/debug"
 	"strings"
 )
@@ -22,22 +21,6 @@ func CatchPanic() {
 // 返回完整的堆栈信息和函数调用信息
 func CatchStack() []byte {
 	return debug.Stack()
-}
-
-// stackTrace print stack stackTrace for debug
-func stackTrace(message string) string {
-	var pcs [32]uintptr
-	n := runtime.Callers(3, pcs[:]) // skip first 3 caller
-
-	var str strings.Builder
-	str.WriteString(message + "\ntrace back:")
-	for _, pc := range pcs[:n] {
-		fn := runtime.FuncForPC(pc)
-		file, line := fn.FileLine(pc)
-		str.WriteString(fmt.Sprintf("\n\t%s:%d", file, line))
-	}
-
-	return str.String()
 }
 
 // Recovery recovery handler
@@ -74,7 +57,6 @@ func isBroken(err interface{}) bool {
 	if ne, ok := err.(*net.OpError); ok {
 		if se, ok := ne.Err.(*os.SyscallError); ok {
 			errMsg := strings.ToLower(se.Error())
-
 			debugPrintf("os syscall error:%s", errMsg)
 
 			if strings.Contains(errMsg, "broken pipe") ||

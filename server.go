@@ -16,8 +16,8 @@ type Server struct {
 	address      string        // http server host eg: ip:port
 	recovery     func()        // goroutine exec recover catch stack
 	gracefulWait time.Duration // when server exit graceful wait time
-	shutdownFunc func()        // shutdown func
-	logger       Logger
+	shutdownFunc func()        // shutdown callback func
+	logger       Logger        // server logger
 }
 
 // Option Server option
@@ -37,7 +37,7 @@ func NewServer(address string, opts ...Option) *Server {
 	}
 
 	s.shutdownFunc = func() {
-		s.logger.Printf("server shutdown...")
+		s.logger.Printf("server shutdown...\n")
 	}
 
 	for _, opt := range opts {
@@ -65,19 +65,22 @@ func (s *Server) Run() {
 	}
 
 	// 在独立协程中运行服务
-	log.Println("server run on: ", s.address)
-	log.Println("server pid: ", os.Getppid())
+	s.logger.Printf("server run on: %s\n", s.address)
+	s.logger.Printf("server pid: %d\n", os.Getppid())
+
+	// 注册平滑退出时候shutdown callback func
+	s.server.RegisterOnShutdown(s.shutdownFunc)
 
 	go func() {
 		defer s.recovery()
 
 		if err := s.server.ListenAndServe(); err != nil {
 			if err != http.ErrServerClosed {
-				log.Printf("server close error: %s", err.Error())
+				s.logger.Printf("server close error: %s\n", err.Error())
 				return
 			}
 
-			log.Printf("server will exit...")
+			s.logger.Printf("server will exit...\n")
 		}
 	}()
 
@@ -94,7 +97,7 @@ func (s *Server) Run() {
 	// Block until we receive our signal.
 	sig := <-ch
 
-	log.Println("exit signal: ", sig.String())
+	s.logger.Printf("exit signal: %s\n", sig.String())
 	// Create a deadline to wait for.
 	ctx, cancel := context.WithTimeout(context.Background(), s.gracefulWait)
 	defer cancel()
@@ -107,7 +110,7 @@ func (s *Server) Run() {
 	go s.server.Shutdown(ctx)
 	<-ctx.Done()
 
-	log.Println("server shutting down")
+	s.logger.Printf("server shutting down\n")
 }
 
 // WithHandler 设置server handler
