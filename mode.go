@@ -41,6 +41,7 @@ func SetMode(value string) {
 	switch value {
 	case DebugMode:
 		slimMode = debugCode
+		LogEntry = LoggerFunc(log.Printf)
 	case ReleaseMode:
 		slimMode = releaseCode
 	case TestMode:
@@ -63,6 +64,6 @@ func debugPrintf(format string, values ...interface{}) {
 			format += "\n"
 		}
 
-		log.Printf("[slim-debug] "+format, values...)
+		LogEntry.Printf("[slim-debug] "+format, values...)
 	}
 }

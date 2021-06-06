@@ -30,7 +30,7 @@ func Recovery() HandlerFunc {
 			if err := recover(); err != nil {
 				errMsg := fmt.Sprintf("%v", err)
 				debugPrintf("exec panic: %s\n", errMsg)
-				debugPrintf("full stack: %s\n", string(CatchStack()))
+				debugPrintf("stack: %s\n", string(CatchStack()))
 
 				// 是否是 brokenPipe类型的错误
 				// 如果是该类型的错误，就不需要返回任何数据给客户端
@@ -43,7 +43,7 @@ func Recovery() HandlerFunc {
 					return
 				}
 
-				c.Fail(http.StatusInternalServerError, "Internal Server Error")
+				c.Fail(http.StatusInternalServerError, "internal server error")
 			}
 		}()
 

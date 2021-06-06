@@ -2,7 +2,6 @@ package slim
 
 import (
 	"strings"
-	"time"
 )
 
 // Logger is logger interface.
@@ -29,17 +28,3 @@ var (
 	// LogEntry default logger entry
 	LogEntry Logger = dummyLogger
 )
-
-// AccessLog access log handler
-func AccessLog() HandlerFunc {
-	return func(c *Context) {
-		// Start timer
-		t := time.Now()
-		// Process request
-		c.Next()
-
-		// Calculate resolution time
-		debugPrintf("status_code: [%d] request_uri: %s exec_seconds: %.4f\n",
-			c.StatusCode, c.Request.RequestURI, time.Since(t).Seconds())
-	}
-}

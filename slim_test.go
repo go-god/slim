@@ -62,12 +62,14 @@ func TestEngineRun(t *testing.T) {
 func TestRunWithServer(t *testing.T) {
 	var (
 		// 运行地址
-		address = fmt.Sprintf("0.0.0.0:1337")
+		address = fmt.Sprintf("0.0.0.0:8080")
 
 		// 平滑退出等待时间
 		gracefulWait = 5 * time.Second
 	)
 
+	// 设置运行mode模式
+	SetMode(DebugMode)
 	// 创建slim engine router引擎
 	engine := New()
 	engine.Use(Recovery(), AccessLog())

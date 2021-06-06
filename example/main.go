@@ -7,6 +7,7 @@ import (
 )
 
 func main() {
+	slim.SetMode(slim.DebugMode)
 	r := slim.Default()
 	r.GET("/", func(c *slim.Context) {
 		c.String(http.StatusOK, "hello word")
