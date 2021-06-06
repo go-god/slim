@@ -8,6 +8,17 @@ import (
 // Option Server option
 type Option func(s *Server)
 
+// Apply apply option for Server
+func (s *Server) Apply(opts ...Option) {
+	for _, opt := range opts {
+		if opt == nil {
+			continue
+		}
+
+		opt(s)
+	}
+}
+
 // WithHandler 设置server handler
 func WithHandler(handler http.Handler) Option {
 	return func(s *Server) {

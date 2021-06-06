@@ -38,8 +38,8 @@ func NewServer(address string, opts ...Option) *Server {
 		s.logger.Printf("server shutdown...\n")
 	}
 
-	for _, opt := range opts {
-		opt(s)
+	if len(opts) > 0 {
+		s.Apply(opts...)
 	}
 
 	if s.server == nil {

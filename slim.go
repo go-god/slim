@@ -49,6 +49,20 @@ func Default() *Engine {
 	return engine
 }
 
+// WrapHandlerFunc is a helper function for wrapping http.HandlerFunc and returns a Gin middleware.
+func WrapHandlerFunc(f http.HandlerFunc) HandlerFunc {
+	return func(c *Context) {
+		f(c.Writer, c.Request)
+	}
+}
+
+// WrapHandler is a helper function for wrapping http.Handler and returns a Gin middleware.
+func WrapHandler(h http.Handler) HandlerFunc {
+	return func(c *Context) {
+		h.ServeHTTP(c.Writer, c.Request)
+	}
+}
+
 // for custom render function
 func (engine *Engine) SetFuncMap(funcMap template.FuncMap) {
 	engine.funcMap = funcMap
