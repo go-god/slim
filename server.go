@@ -11,7 +11,6 @@ import (
 
 // Server http server struct
 type Server struct {
-	handler      http.Handler  // http server handler
 	server       *http.Server  // http server object
 	address      string        // http server host eg: ip:port
 	recovery     func()        // goroutine exec recover catch stack
@@ -20,20 +19,19 @@ type Server struct {
 	logger       Logger        // server logger
 }
 
-// Option Server option
-type Option func(s *Server)
-
-// NewServer create http server
+// NewServer create Server entry through Functional Options
 func NewServer(address string, opts ...Option) *Server {
 	if address == "" {
 		panic("server run address is empty")
 	}
 
 	s := &Server{
+		server:       NewHTTPServer(),
 		address:      address,
 		recovery:     CatchPanic,
 		gracefulWait: 5 * time.Second,
-		logger:       LoggerFunc(log.Printf), // 默认采用log.Printf
+		// 采用接口函数模式，设置logger,默认采用log.Printf
+		logger: LoggerFunc(log.Printf),
 	}
 
 	s.shutdownFunc = func() {
@@ -45,14 +43,12 @@ func NewServer(address string, opts ...Option) *Server {
 	}
 
 	if s.server == nil {
-		s.server = InitHTTPServer() // 初始化默认http server
+		panic("http server is nil")
 	}
 
-	if s.handler == nil {
-		s.handler = Default() // 默认engine
+	if s.server.Handler == nil {
+		s.server.Handler = Default() // 默认engine
 	}
-
-	s.server.Handler = s.handler
 
 	return s
 }
@@ -84,7 +80,7 @@ func (s *Server) Run() {
 		}
 	}()
 
-	// 平滑重启
+	// graceful exit
 	ch := make(chan os.Signal, 1)
 	// We'll accept graceful shutdowns when quit via SIGINT (Ctrl+C)
 	// recv signal to exit main goroutine
@@ -111,57 +107,4 @@ func (s *Server) Run() {
 	<-ctx.Done()
 
 	s.logger.Printf("server shutting down\n")
-}
-
-// WithHandler 设置server handler
-func WithHandler(handler http.Handler) Option {
-	return func(s *Server) {
-		if handler == nil {
-			panic("please set handler")
-		}
-
-		s.handler = handler
-	}
-}
-
-// WithHTTPServer 设置http server
-func WithHTTPServer(server *http.Server) Option {
-	return func(s *Server) {
-		s.server = server
-	}
-}
-
-// WithAddress 设置运行地址addr
-func WithAddress(addr string) Option {
-	return func(s *Server) {
-		s.address = addr
-	}
-}
-
-// WithRecovery 设置recovery
-func WithRecovery(fn func()) Option {
-	return func(s *Server) {
-		s.recovery = fn
-	}
-}
-
-// WithGracefulWait 设置平滑退出时间
-func WithGracefulWait(gracefulWait time.Duration) Option {
-	return func(s *Server) {
-		s.gracefulWait = gracefulWait
-	}
-}
-
-// WithShutdownFunc 设置shutdown func
-func WithShutdownFunc(fn func()) Option {
-	return func(s *Server) {
-		s.shutdownFunc = fn
-	}
-}
-
-// WithLogger 设置logger
-func WithLogger(l Logger) Option {
-	return func(s *Server) {
-		s.logger = l
-	}
 }

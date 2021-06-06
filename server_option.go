@@ -5,71 +5,58 @@ import (
 	"time"
 )
 
-var (
-	// DefaultMaxHeaderBytes default MaxHeaderBytes
-	DefaultMaxHeaderBytes = 2 << 20 // header max 2MB
+// Option Server option
+type Option func(s *Server)
 
-	// DefaultReadTimeout default ReadTimeout
-	DefaultReadTimeout = 10 * time.Second
+// WithHandler 设置server handler
+func WithHandler(handler http.Handler) Option {
+	return func(s *Server) {
+		if handler == nil {
+			panic("please set handler")
+		}
 
-	// DefaultWriteTimeout default WriteTimeout
-	DefaultWriteTimeout = 10 * time.Second
-
-	// DefaultIdleTimeout default IdleTimeout
-	DefaultIdleTimeout = 60 * time.Second
-)
-
-// HTTPServerOption http server option
-type HTTPServerOption func(server *http.Server)
-
-// InitHTTPServer 初始化http server
-func InitHTTPServer(opts ...HTTPServerOption) *http.Server {
-	server := &http.Server{
-		// Good practice to set timeouts to avoid Slowloris attacks.
-		ReadTimeout:    DefaultReadTimeout,
-		WriteTimeout:   DefaultWriteTimeout,
-		IdleTimeout:    DefaultIdleTimeout,
-		MaxHeaderBytes: DefaultMaxHeaderBytes,
-	}
-
-	for _, opt := range opts {
-		opt(server)
-	}
-
-	return server
-}
-
-// WithHTTPReadTimeout 设置http read timeout
-func WithHTTPReadTimeout(timeout time.Duration) HTTPServerOption {
-	return func(server *http.Server) {
-		server.ReadHeaderTimeout = timeout
+		s.server.Handler = handler
 	}
 }
 
-// WithHTTPAddress 设置http server address
-func WithHTTPAddress(address string) HTTPServerOption {
-	return func(server *http.Server) {
-		server.Addr = address
+// WithHTTPServer 设置http server
+func WithHTTPServer(server *http.Server) Option {
+	return func(s *Server) {
+		s.server = server
 	}
 }
 
-// WithHTTPWriteTimeout 设置http read timeout
-func WithHTTPWriteTimeout(timeout time.Duration) HTTPServerOption {
-	return func(server *http.Server) {
-		server.WriteTimeout = timeout
+// WithAddress 设置运行地址addr
+func WithAddress(addr string) Option {
+	return func(s *Server) {
+		s.address = addr
 	}
 }
 
-// WithHTTPIdleTimeout 设置 IdleTimeout
-func WithHTTPIdleTimeout(timeout time.Duration) HTTPServerOption {
-	return func(server *http.Server) {
-		server.IdleTimeout = timeout
+// WithRecovery 设置recovery
+func WithRecovery(fn func()) Option {
+	return func(s *Server) {
+		s.recovery = fn
 	}
 }
 
-// WithHTTPMaxHeaderBytes 设置MaxHeaderBytes
-func WithHTTPMaxHeaderBytes(b int) HTTPServerOption {
-	return func(server *http.Server) {
-		server.MaxHeaderBytes = b
+// WithGracefulWait 设置平滑退出时间
+func WithGracefulWait(gracefulWait time.Duration) Option {
+	return func(s *Server) {
+		s.gracefulWait = gracefulWait
+	}
+}
+
+// WithShutdownFunc 设置shutdown func
+func WithShutdownFunc(fn func()) Option {
+	return func(s *Server) {
+		s.shutdownFunc = fn
+	}
+}
+
+// WithLogger 设置logger
+func WithLogger(l Logger) Option {
+	return func(s *Server) {
+		s.logger = l
 	}
 }

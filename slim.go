@@ -22,7 +22,7 @@ func (c HandlersChain) Last() HandlerFunc {
 	return nil
 }
 
-// Engine implement the interface of ServeHTTP
+// Engine implement the interface of http.Handler
 type Engine struct {
 	*RouterGroup
 	router        *router
@@ -61,7 +61,7 @@ func (engine *Engine) LoadHTMLGlob(pattern string) {
 
 // Run defines the method to start a http server
 func (engine *Engine) Run(addr string, opts ...HTTPServerOption) (err error) {
-	server := InitHTTPServer(opts...)
+	server := NewHTTPServer(opts...)
 	server.Handler = engine
 	server.Addr = addr
 
