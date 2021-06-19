@@ -37,7 +37,7 @@ func Recovery() HandlerFunc {
 				// 代码参考gin recovery.go RecoveryWithWriter方法实现
 				// If the connection is dead, we can't write a status to it.
 				// if broken pipe,return nothing.
-				if isBroken(err) {
+				if IsBroken(err) {
 					// ctx.Error(err.(error)) // nolint: errcheck
 					c.Abort()
 					return
@@ -51,9 +51,9 @@ func Recovery() HandlerFunc {
 	}
 }
 
-// isBroken check for a broken connection, as it is not really a
+// IsBroken check for a broken connection, as it is not really a
 // condition that warrants a panic stack trace.
-func isBroken(err interface{}) bool {
+func IsBroken(err interface{}) bool {
 	if ne, ok := err.(*net.OpError); ok {
 		if se, ok := ne.Err.(*os.SyscallError); ok {
 			errMsg := strings.ToLower(se.Error())
